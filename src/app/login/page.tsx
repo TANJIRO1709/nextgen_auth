@@ -1,6 +1,6 @@
 'use client';
 import React, { useState } from 'react';
-import { client, account } from '../appwrite/appwrite';
+import {  account } from '../appwrite/appwrite';
 
 export default function Login() {
     const [isLoggedInUser, setLoggedInUser] = useState<null | Record<string, any>>(null);
