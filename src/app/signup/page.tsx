@@ -1,6 +1,7 @@
 'use client';
+
 import React, { useState } from 'react';
-import {  account } from '../appwrite/appwrite';
+import { account } from '../appwrite/appwrite'; // Ensure the path to Appwrite is correct
 
 type DOB = {
     year: number;
@@ -8,41 +9,58 @@ type DOB = {
     day: number;
 };
 
-export default function SignUp() {
-    const [name, setName] = useState<string>('');
-    const [email, setEmail] = useState<string>('');
-    const [phoneNumber, setPhoneNumber] = useState<number | undefined>();
-    const [gender, setGender] = useState<string>('');
-    const [dob, setDOB] = useState<DOB | undefined>();
-    const [address, setAddress] = useState<string>('');
-    const [pincode, setPincode] = useState<number | undefined>();
-    const [postOffice, setPostOffice] = useState<string>('');
-    const [occupation, setOccupation] = useState<string>('');
-    const [incomeCategory, setIncomeCategory] = useState<string>('');
-    const [acresOfLand, setAcresOfLand] = useState<number | undefined>();
-    const [cropsGrown, setCropsGrown] = useState<number | undefined>();
-    const [password, setPassword] = useState<string>('');
-    const [confirmPassword, setConfirmPassword] = useState<string>('');
+const SignUp: React.FC = () => {
+    const [formData, setFormData] = useState({
+        name: '',
+        email: '',
+        phoneNumber: '',
+        gender: '',
+        dob: '',
+        address: '',
+        pincode: '',
+        postOffice: '',
+        occupation: '',
+        incomeCategory: '',
+        acresOfLand: '',
+        cropsGrown: '',
+        password: '',
+        confirmPassword: '',
+    });
+
+    const handleInputChange = (
+        e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
+    ) => {
+        const { name, value } = e.target;
+        setFormData((prev) => ({ ...prev, [name]: value }));
+    };
+
+    const parseDOB = (): DOB | null => {
+        const [year, month, day] = formData.dob.split('-').map(Number);
+        if (year && month && day) {
+            return { year, month, day };
+        }
+        return null;
+    };
 
     const handleSignup = async () => {
+        const { name, email, password, confirmPassword } = formData;
+        const dob = parseDOB();
+
         if (password !== confirmPassword) {
             alert('Passwords do not match!');
             return;
         }
 
-        if (!dob || !dob.year || !dob.month || !dob.day) {
+        if (!dob) {
             alert('Please provide a valid date of birth.');
             return;
         }
 
         try {
-            // Create a new user with Appwrite
             await account.create('unique()', email, password, name);
-
-            // Post-signup actions
-            alert('Account created successfully! Welcome, ' + name);
+            alert(`Account created successfully! Welcome, ${name}`);
         } catch (error) {
-            console.error('Signup failed:', error);
+            console.error('Signup failed:', (error as Error).message);
             alert('Signup failed. Please try again.');
         }
     };
@@ -57,157 +75,245 @@ export default function SignUp() {
                 }}
                 className="w-full max-w-lg bg-gray-100 shadow-lg rounded-lg p-6"
             >
+                {/* Name */}
                 <div className="mb-4">
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Name</label>
+                    <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">
+                        Name
+                    </label>
                     <input
+                        id="name"
+                        name="name"
                         type="text"
-                        value={name}
-                        onChange={(e) => setName(e.target.value)}
+                        value={formData.name}
+                        onChange={handleInputChange}
                         required
                         className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                     />
                 </div>
 
+                {/* Email */}
                 <div className="mb-4">
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                    <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
+                        Email
+                    </label>
                     <input
+                        id="email"
+                        name="email"
                         type="email"
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
+                        value={formData.email}
+                        onChange={handleInputChange}
                         required
                         className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                     />
                 </div>
 
+                {/* Phone Number */}
                 <div className="mb-4">
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Phone Number</label>
+                    <label
+                        htmlFor="phoneNumber"
+                        className="block text-sm font-medium text-gray-700 mb-1"
+                    >
+                        Phone Number
+                    </label>
                     <input
-                        type="number"
-                        value={phoneNumber || ''}
-                        onChange={(e) => setPhoneNumber(Number(e.target.value))}
+                        id="phoneNumber"
+                        name="phoneNumber"
+                        type="tel"
+                        value={formData.phoneNumber}
+                        onChange={handleInputChange}
                         className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                     />
                 </div>
 
+                {/* Gender */}
                 <div className="mb-4">
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Gender</label>
+                    <label htmlFor="gender" className="block text-sm font-medium text-gray-700 mb-1">
+                        Gender
+                    </label>
                     <select
-                        value={gender}
-                        onChange={(e) => setGender(e.target.value)}
+                        id="gender"
+                        name="gender"
+                        value={formData.gender}
+                        onChange={handleInputChange}
                         className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                     >
-                        <option value="" disabled>Select Gender</option>
+                        <option value="" disabled>
+                            Select Gender
+                        </option>
                         <option value="Male">Male</option>
                         <option value="Female">Female</option>
                         <option value="Other">Other</option>
                     </select>
                 </div>
 
+                {/* Date of Birth */}
                 <div className="mb-4">
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Date of Birth</label>
+                    <label htmlFor="dob" className="block text-sm font-medium text-gray-700 mb-1">
+                        Date of Birth
+                    </label>
                     <input
+                        id="dob"
+                        name="dob"
                         type="date"
-                        onChange={(e) => {
-                            const [year, month, day] = e.target.value.split('-').map(Number);
-                            setDOB({ year, month, day });
-                        }}
+                        value={formData.dob}
+                        onChange={handleInputChange}
                         className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                     />
                 </div>
 
+                {/* Address */}
                 <div className="mb-4">
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Address</label>
+                    <label htmlFor="address" className="block text-sm font-medium text-gray-700 mb-1">
+                        Address
+                    </label>
                     <textarea
-                        value={address}
-                        onChange={(e) => setAddress(e.target.value)}
+                        id="address"
+                        name="address"
+                        value={formData.address}
+                        onChange={handleInputChange}
                         rows={3}
                         className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                     />
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Pincode</label>
-                        <input
-                            type="number"
-                            value={pincode || ''}
-                            onChange={(e) => setPincode(Number(e.target.value))}
-                            className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        />
-                    </div>
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Post Office</label>
-                        <input
-                            type="text"
-                            value={postOffice}
-                            onChange={(e) => setPostOffice(e.target.value)}
-                            className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        />
-                    </div>
-                </div>
-
+                {/* Pincode */}
                 <div className="mb-4">
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Occupation</label>
+                    <label htmlFor="pincode" className="block text-sm font-medium text-gray-700 mb-1">
+                        Pincode
+                    </label>
                     <input
+                        id="pincode"
+                        name="pincode"
                         type="text"
-                        value={occupation}
-                        onChange={(e) => setOccupation(e.target.value)}
+                        value={formData.pincode}
+                        onChange={handleInputChange}
                         className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                     />
                 </div>
 
+                {/* Post Office */}
                 <div className="mb-4">
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Income Category</label>
+                    <label
+                        htmlFor="postOffice"
+                        className="block text-sm font-medium text-gray-700 mb-1"
+                    >
+                        Post Office
+                    </label>
+                    <input
+                        id="postOffice"
+                        name="postOffice"
+                        type="text"
+                        value={formData.postOffice}
+                        onChange={handleInputChange}
+                        className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                </div>
+
+                {/* Occupation */}
+                <div className="mb-4">
+                    <label htmlFor="occupation" className="block text-sm font-medium text-gray-700 mb-1">
+                        Occupation
+                    </label>
+                    <input
+                        id="occupation"
+                        name="occupation"
+                        type="text"
+                        value={formData.occupation}
+                        onChange={handleInputChange}
+                        className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                </div>
+
+                {/* Income Category */}
+                <div className="mb-4">
+                    <label
+                        htmlFor="incomeCategory"
+                        className="block text-sm font-medium text-gray-700 mb-1"
+                    >
+                        Income Category
+                    </label>
                     <select
-                        value={incomeCategory}
-                        onChange={(e) => setIncomeCategory(e.target.value)}
+                        id="incomeCategory"
+                        name="incomeCategory"
+                        value={formData.incomeCategory}
+                        onChange={handleInputChange}
                         className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                     >
-                        <option value="" disabled>Select Category</option>
+                        <option value="" disabled>
+                            Select Income Category
+                        </option>
                         <option value="Low">Low</option>
                         <option value="Middle">Middle</option>
                         <option value="High">High</option>
                     </select>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Acres of Land</label>
-                        <input
-                            type="number"
-                            value={acresOfLand || ''}
-                            onChange={(e) => setAcresOfLand(Number(e.target.value))}
-                            className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        />
-                    </div>
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Crops Grown</label>
-                        <input
-                            type="number"
-                            value={cropsGrown || ''}
-                            onChange={(e) => setCropsGrown(Number(e.target.value))}
-                            className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        />
-                    </div>
+                {/* Acres of Land */}
+                <div className="mb-4">
+                    <label
+                        htmlFor="acresOfLand"
+                        className="block text-sm font-medium text-gray-700 mb-1"
+                    >
+                        Acres of Land
+                    </label>
+                    <input
+                        id="acresOfLand"
+                        name="acresOfLand"
+                        type="text"
+                        value={formData.acresOfLand}
+                        onChange={handleInputChange}
+                        className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
                 </div>
 
+                {/* Crops Grown */}
                 <div className="mb-4">
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Password</label>
+                    <label
+                        htmlFor="cropsGrown"
+                        className="block text-sm font-medium text-gray-700 mb-1"
+                    >
+                        Crops Grown
+                    </label>
                     <input
+                        id="cropsGrown"
+                        name="cropsGrown"
+                        type="text"
+                        value={formData.cropsGrown}
+                        onChange={handleInputChange}
+                        className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                </div>
+
+                {/* Password */}
+                <div className="mb-4">
+                    <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
+                        Password
+                    </label>
+                    <input
+                        id="password"
+                        name="password"
                         type="password"
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
+                        value={formData.password}
+                        onChange={handleInputChange}
                         required
                         className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                     />
                 </div>
 
+                {/* Confirm Password */}
                 <div className="mb-4">
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Confirm Password</label>
+                    <label
+                        htmlFor="confirmPassword"
+                        className="block text-sm font-medium text-gray-700 mb-1"
+                    >
+                        Confirm Password
+                    </label>
                     <input
+                        id="confirmPassword"
+                        name="confirmPassword"
                         type="password"
-                        value={confirmPassword}
-                        onChange={(e) => setConfirmPassword(e.target.value)}
+                        value={formData.confirmPassword}
+                        onChange={handleInputChange}
                         required
                         className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                     />
@@ -222,4 +328,6 @@ export default function SignUp() {
             </form>
         </div>
     );
-}
+};
+
+export default SignUp;

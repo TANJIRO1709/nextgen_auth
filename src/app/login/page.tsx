@@ -1,36 +1,55 @@
 'use client';
+
 import React, { useState } from 'react';
-import {  account } from '../appwrite/appwrite';
+import { account } from '../appwrite/appwrite'; // Ensure this path is correct
+
+// Define a type for user data
+interface User {
+    name: string;
+    [key: string]: unknown; // For additional properties if needed
+}
 
 export default function Login() {
-    const [isLoggedInUser, setLoggedInUser] = useState<null | Record<string, any>>(null);
+    // State for logged-in user information
+    const [isLoggedInUser, setLoggedInUser] = useState<User | null>(null);
+
+    // State for login credentials
     const [email, setEmail] = useState<string>('');
     const [password, setPassword] = useState<string>('');
 
+    // Function to handle user login
     const login = async (email: string, password: string) => {
         try {
+            // Create a new session
             const session = await account.createEmailPasswordSession(email, password);
             console.log('Session created:', session);
-            const user = await account.get();
+
+            // Fetch and store the logged-in user's details
+            const user: User = await account.get();
             setLoggedInUser(user);
+
             alert(`Welcome, ${user.name}! You are now logged in.`);
         } catch (error) {
-            console.error('Login failed:', error);
+            console.error('Login failed:', (error as Error).message || error);
             alert('Login failed. Please check your credentials.');
         }
     };
 
+    // Function to handle user logout
     const logout = async () => {
         try {
+            // Delete the current session
             await account.deleteSession('current');
             setLoggedInUser(null);
+
             alert('You have been logged out successfully.');
         } catch (error) {
-            console.error('Logout failed:', error);
+            console.error('Logout failed:', (error as Error).message || error);
             alert('Error during logout. Please try again.');
         }
     };
 
+    // Render for logged-in users
     if (isLoggedInUser) {
         return (
             <div className="min-h-screen flex flex-col items-center justify-center bg-white text-gray-800">
@@ -47,6 +66,7 @@ export default function Login() {
         );
     }
 
+    // Render for login form
     return (
         <div className="min-h-screen flex flex-col items-center justify-center bg-white text-gray-800">
             <h1 className="text-3xl font-bold text-blue-500 mb-6">Login</h1>
@@ -58,8 +78,11 @@ export default function Login() {
                 className="w-full max-w-sm bg-gray-100 shadow-lg rounded-lg p-6"
             >
                 <div className="mb-4">
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                    <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
+                        Email
+                    </label>
                     <input
+                        id="email"
                         type="email"
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
@@ -68,8 +91,11 @@ export default function Login() {
                     />
                 </div>
                 <div className="mb-4">
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Password</label>
+                    <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
+                        Password
+                    </label>
                     <input
+                        id="password"
                         type="password"
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
