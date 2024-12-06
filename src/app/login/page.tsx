@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { account } from '../appwrite/appwrite'; // Ensure this path is correct
 
 // Define a type for user data
@@ -17,9 +17,29 @@ export default function Login() {
     const [email, setEmail] = useState<string>('');
     const [password, setPassword] = useState<string>('');
 
+    // Check for an existing session on component mount
+    useEffect(() => {
+        const fetchUser = async () => {
+            try {
+                const user: User = await account.get();
+                setLoggedInUser(user);
+            } catch (error) {
+                console.log('No active session found.');
+            }
+        };
+        fetchUser();
+    }, []);
+
     // Function to handle user login
     const login = async (email: string, password: string) => {
         try {
+            // Check if a session already exists
+            const existingSession = await account.getSession('current').catch(() => null);
+            if (existingSession) {
+                alert('You are already logged in.');
+                return;
+            }
+
             // Create a new session
             const session = await account.createEmailPasswordSession(email, password);
             console.log('Session created:', session);
@@ -38,7 +58,6 @@ export default function Login() {
     // Function to handle user logout
     const logout = async () => {
         try {
-            // Delete the current session
             await account.deleteSession('current');
             setLoggedInUser(null);
 

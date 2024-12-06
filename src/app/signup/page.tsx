@@ -1,14 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { account } from '../appwrite/appwrite'; // Ensure the path to Appwrite is correct
-
-type DOB = {
-    year: number;
-    month: number;
-    day: number;
-};
-
+import { account } from '../appwrite/appwrite'; 
 const SignUp: React.FC = () => {
     const [formData, setFormData] = useState({
         name: '',
@@ -34,16 +27,13 @@ const SignUp: React.FC = () => {
         setFormData((prev) => ({ ...prev, [name]: value }));
     };
 
-    const parseDOB = (): DOB | null => {
+    const parseDOB = () => {
         const [year, month, day] = formData.dob.split('-').map(Number);
-        if (year && month && day) {
-            return { year, month, day };
-        }
-        return null;
+        return year && month && day ? { year, month, day } : null;
     };
 
     const handleSignup = async () => {
-        const { name, email, password, confirmPassword } = formData;
+        const { name, email, password, confirmPassword, ...rest } = formData;
         const dob = parseDOB();
 
         if (password !== confirmPassword) {
@@ -57,10 +47,25 @@ const SignUp: React.FC = () => {
         }
 
         try {
+            // Create user in Appwrite
             await account.create('unique()', email, password, name);
-            alert(`Account created successfully! Welcome, ${name}`);
+
+            // Send user data to MongoDB via API
+            const userData = { ...rest, name, email, dob };
+            const response = await fetch('/api/saveUserToMongo', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ userData }),
+            });
+
+            if (response.ok) {
+                alert(`Account created successfully! Welcome, ${name}`);
+            } else {
+                const errorData = await response.json();
+                alert(`Failed to save user to MongoDB: ${errorData.message}`);
+            }
         } catch (error) {
-            console.error('Signup failed:', (error as Error).message);
+            console.error('Signup failed:', error);
             alert('Signup failed. Please try again.');
         }
     };
